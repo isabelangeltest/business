@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NovaSoft Solutions — Dashboard BI</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --blue-dark: #1A3C5E;
+    --blue-mid: #185FA5;
+    --blue-light: #378ADD;
+    --blue-pale: #E6F1FB;
+    --green-dark: #0F6E56;
+    --green-mid: #1D9E75;
+    --green-pale: #E1F5EE;
+    --red-dark: #A32D2D;
+    --red-pale: #FCEBEB;
+    --amber-dark: #BA7517;
+    --amber-pale: #FAEEDA;
+    --gray-bg: #F5F6FA;
+    --gray-card: #FFFFFF;
+    --gray-border: #E2E8F0;
+    --gray-text: #64748B;
+    --text-main: #1E293B;
+    --radius: 10px;
+    --shadow: 0 2px 8px rgba(0,0,0,0.07);
+  }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--gray-bg); color: var(--text-main); min-height: 100vh; }
+
+  /* HEADER */
+  .header { background: var(--blue-dark); color: #fff; padding: 20px 32px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+  .header-left { display: flex; align-items: center; gap: 14px; }
+  .logo { width: 44px; height: 44px; background: rgba(255,255,255,0.15); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 22px; }
+  .header h1 { font-size: 20px; font-weight: 600; }
+  .header p { font-size: 13px; opacity: 0.7; margin-top: 2px; }
+  .header-badge { background: rgba(255,255,255,0.15); border-radius: 20px; padding: 6px 14px; font-size: 12px; }
+
+  /* TABS */
+  .tabs { background: #fff; border-bottom: 1px solid var(--gray-border); padding: 0 32px; display: flex; gap: 4px; overflow-x: auto; }
+  .tab { padding: 14px 18px; font-size: 14px; border: none; background: none; cursor: pointer; color: var(--gray-text); border-bottom: 3px solid transparent; white-space: nowrap; display: flex; align-items: center; gap: 6px; transition: all 0.2s; }
+  .tab:hover { color: var(--blue-mid); }
+  .tab.active { color: var(--blue-dark); border-bottom-color: var(--blue-dark); font-weight: 600; }
+
+  /* CONTENT */
+  .content { padding: 28px 32px; max-width: 1200px; margin: 0 auto; }
+  .section { display: none; }
+  .section.active { display: block; }
+
+  /* METRICS */
+  .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px; margin-bottom: 24px; }
+  .metric-card { background: var(--gray-card); border-radius: var(--radius); border: 1px solid var(--gray-border); padding: 16px 18px; box-shadow: var(--shadow); }
+  .metric-card .lbl { font-size: 12px; color: var(--gray-text); margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+  .metric-card .val { font-size: 26px; font-weight: 700; color: var(--text-main); }
+  .metric-card .sub { font-size: 12px; margin-top: 4px; }
+  .sub.up { color: var(--green-dark); }
+  .sub.down { color: var(--red-dark); }
+  .sub.warn { color: var(--amber-dark); }
+
+  /* CHARTS */
+  .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
+  .chart-card { background: var(--gray-card); border-radius: var(--radius); border: 1px solid var(--gray-border); padding: 20px; box-shadow: var(--shadow); }
+  .chart-card h3 { font-size: 14px; color: var(--gray-text); margin-bottom: 16px; font-weight: 500; }
+  .chart-wrap { position: relative; width: 100%; }
+
+  /* TABLES */
+  .table-card { background: var(--gray-card); border-radius: var(--radius); border: 1px solid var(--gray-border); padding: 20px; box-shadow: var(--shadow); margin-bottom: 20px; }
+  .table-card h3 { font-size: 15px; font-weight: 600; color: var(--text-main); margin-bottom: 16px; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  thead th { background: var(--blue-dark); color: #fff; padding: 10px 14px; text-align: left; font-weight: 500; }
+  thead th:first-child { border-radius: 6px 0 0 6px; }
+  thead th:last-child { border-radius: 0 6px 6px 0; }
+  tbody td { padding: 10px 14px; border-bottom: 1px solid var(--gray-border); color: var(--text-main); }
+  tbody tr:hover td { background: var(--blue-pale); }
+  tbody tr:last-child td { border-bottom: none; }
+
+  /* BADGES */
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+  .badge.success { background: var(--green-pale); color: var(--green-dark); }
+  .badge.warning { background: var(--amber-pale); color: var(--amber-dark); }
+  .badge.danger { background: var(--red-pale); color: var(--red-dark); }
+  .badge.info { background: var(--blue-pale); color: var(--blue-dark); }
+
+  /* CYCLE */
+  .cycle { display: flex; align-items: center; gap: 0; margin-bottom: 24px; flex-wrap: wrap; }
+  .cycle-step { flex: 1; min-width: 100px; text-align: center; padding: 16px 10px; color: #fff; }
+  .cycle-step:first-child { border-radius: 10px 0 0 10px; }
+  .cycle-step:last-child { border-radius: 0 10px 10px 0; }
+  .cycle-step i { font-size: 24px; display: block; margin-bottom: 6px; }
+  .cycle-step .cs-title { font-size: 14px; font-weight: 600; }
+  .cycle-step .cs-sub { font-size: 11px; opacity: 0.8; margin-top: 2px; }
+  .cycle-arrow { font-size: 20px; color: var(--gray-text); padding: 0 4px; }
+
+  /* DECISION BOX */
+  .decision-box { background: linear-gradient(135deg, var(--blue-dark), var(--blue-mid)); color: #fff; border-radius: var(--radius); padding: 24px 28px; margin-top: 20px; }
+  .decision-box h3 { font-size: 16px; font-weight: 600; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+  .decision-box p { font-size: 14px; opacity: 0.9; line-height: 1.6; margin-bottom: 10px; }
+  .decision-box .projection { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 14px; }
+  .decision-box .proj-item { background: rgba(255,255,255,0.15); border-radius: 8px; padding: 12px 16px; flex: 1; min-width: 140px; }
+  .decision-box .proj-item .pv { font-size: 22px; font-weight: 700; }
+  .decision-box .proj-item .pl { font-size: 12px; opacity: 0.8; margin-top: 2px; }
+
+  /* KPIS LIST */
+  .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; margin-bottom: 24px; }
+  .kpi-item { background: var(--gray-card); border-radius: var(--radius); border: 1px solid var(--gray-border); padding: 14px 16px; box-shadow: var(--shadow); }
+  .kpi-item .kpi-name { font-size: 13px; color: var(--gray-text); margin-bottom: 8px; }
+  .kpi-item .kpi-bar-bg { background: var(--gray-border); border-radius: 4px; height: 8px; margin-bottom: 8px; }
+  .kpi-item .kpi-bar { height: 8px; border-radius: 4px; }
+  .kpi-item .kpi-vals { display: flex; justify-content: space-between; font-size: 12px; }
+  .kpi-item .kpi-current { font-weight: 600; color: var(--text-main); }
+  .kpi-item .kpi-target { color: var(--gray-text); }
+
+  /* RISK MATRIX */
+  .risk-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 20px; }
+  .risk-item { border-radius: var(--radius); padding: 14px 16px; border-left: 4px solid; }
+  .risk-item.high { background: var(--red-pale); border-color: var(--red-dark); }
+  .risk-item.med { background: var(--amber-pale); border-color: var(--amber-dark); }
+  .risk-item.low { background: var(--green-pale); border-color: var(--green-dark); }
+  .risk-item h4 { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+  .risk-item p { font-size: 12px; color: var(--gray-text); }
+
+  /* TIMELINE */
+  .timeline { margin-bottom: 20px; }
+  .tl-item { display: flex; gap: 14px; margin-bottom: 16px; align-items: flex-start; }
+  .tl-dot { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; color: #fff; }
+  .tl-content { flex: 1; }
+  .tl-content h4 { font-size: 14px; font-weight: 600; margin-bottom: 2px; }
+  .tl-content p { font-size: 13px; color: var(--gray-text); }
+  .tl-tag { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 4px; margin-bottom: 4px; display: inline-block; }
+
+  /* FOOTER */
+  .footer { text-align: center; padding: 20px; font-size: 12px; color: var(--gray-text); border-top: 1px solid var(--gray-border); margin-top: 20px; }
+
+  @media (max-width: 700px) {
+    .content { padding: 16px; }
+    .charts-grid { grid-template-columns: 1fr; }
+    .risk-grid { grid-template-columns: 1fr; }
+    .header { padding: 16px; }
+    .tabs { padding: 0 8px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <div class="logo"><i class="ti ti-cpu"></i></div>
+    <div>
+      <h1>NovaSoft Solutions S.A.S.</h1>
+      <p>Dashboard de Business Intelligence · Análisis Estratégico 2024</p>
+    </div>
+  </div>
+  <div class="header-badge"><i class="ti ti-school"></i> Trabajo Final ACA · CUN Pereira</div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('overview', this)"><i class="ti ti-dashboard"></i> Resumen Ejecutivo</button>
+  <button class="tab" onclick="switchTab('financiero', this)"><i class="ti ti-coin"></i> Financiero</button>
+  <button class="tab" onclick="switchTab('clientes', this)"><i class="ti ti-users"></i> Clientes</button>
+  <button class="tab" onclick="switchTab('productos', this)"><i class="ti ti-package"></i> Productos</button>
+  <button class="tab" onclick="switchTab('kpis', this)"><i class="ti ti-target"></i> KPIs</button>
+  <button class="tab" onclick="switchTab('riesgos', this)"><i class="ti ti-alert-triangle"></i> Riesgos</button>
+  <button class="tab" onclick="switchTab('decision', this)"><i class="ti ti-rocket"></i> Decisión BI</button>
+</div>
+
+<!-- ===================== RESUMEN ===================== -->
+<div class="content">
+<div id="overview" class="section active">
+  <div class="metrics-grid">
+    <div class="metric-card">
+      <div class="lbl"><i class="ti ti-currency-dollar"></i> Ingresos 2024</div>
+      <div class="val">$695M</div>
+      <div class="sub up">↑ 29% vs 2023</div>
+    </div>
+    <div class="metric-card">
+      <div class="lbl"><i class="ti ti-chart-pie"></i> EBITDA</div>
+      <div class="val">62%</div>
+      <div class="sub up">$430M COP</div>
+    </div>
+    <div class="metric-card">
+      <div class="lbl"><i class="ti ti-building"></i> Clientes activos</div>
+      <div class="val">28</div>
+      <div class="sub">3 verticales</div>
+    </div>
+    <div class="metric-card">
+      <div class="lbl"><i class="ti ti-star"></i> NPS</div>
+      <div class="val">61</div>
+      <div class="sub warn">⚠ Meta: >70</div>
+    </div>
+    <div class="metric-card">
+      <div class="lbl"><i class="ti ti-trending-up"></i> LTV:CAC</div>
+      <div class="val">8.5x</div>
+      <div class="sub up">✓ Excelente</div>
+    </div>
+    <div class="metric-card">
+      <div class="lbl"><i class="ti ti-user-minus"></i> Churn anual</div>
+      <div class="val">12%</div>
+      <div class="sub down">⚠ Meta: <8%</div>
+    </div>
+    <div class="metric-card">
+      <div class="lbl"><i class="ti ti-users"></i> Empleados</div>
+      <div class="val">18</div>
+      <div class="sub">Rotación 8%/año</div>
+    </div>
+    <div class="metric-card">
+      <div class="lbl"><i class="ti ti-calendar"></i> Runway</div>
+      <div class="val">14m</div>
+      <div class="sub warn">Sin deuda</div>
+    </div>
+  </div>
+
+  <div class="cycle">
+    <div class="cycle-step" style="background:#1A3C5E">
+      <i class="ti ti-database"></i>
+      <div class="cs-title">Datos</div>
+      <div class="cs-sub">Evidencia recolectada</div>
+    </div>
+    <div class="cycle-arrow">→</div>
+    <div class="cycle-step" style="background:#2E7D32">
+      <i class="ti ti-table"></i>
+      <div class="cs-title">Información</div>
+      <div class="cs-sub">Organización y estructura</div>
+    </div>
+    <div class="cycle-arrow">→</div>
+    <div class="cycle-step" style="background:#7B3F00">
+      <i class="ti ti-brain"></i>
+      <div class="cs-title">Conocimiento</div>
+      <div class="cs-sub">Análisis e interpretación</div>
+    </div>
+    <div class="cycle-arrow">→</div>
+    <div class="cycle-step" style="background:#B71C1C">
+      <i class="ti ti-rocket"></i>
+      <div class="cs-title">Decisión</div>
+      <div class="cs-sub">Propuesta estratégica</div>
+    </div>
+  </div>
+
+  <div class="charts-grid">
+    <div class="chart-card">
+      <h3><i class="ti ti-chart-bar"></i> Crecimiento de ingresos 2022–2024 (COP millones)</h3>
+      <div class="chart-wrap" style="height:240px"><canvas id="c_ingresos" role="img" aria-label="Ingresos anuales 2022 380M, 2023 540M, 2024 695M COP">Ingresos: 2022 $380M, 2023 $540M, 2024 $695M.</canvas></div>
+    </div>
+    <div class="chart-card">
+      <h3><i class="ti ti-chart-donut"></i> Distribución de ingresos 2024</h3>
+      <div class="chart-wrap" style="height:240px"><canvas id="c_dist" role="img" aria-label="Suscripciones SaaS 60%, Consultoría 26%, Soporte Premium 14%">Suscripciones SaaS 60%, Consultoría 26%, Soporte 14%.</canvas></div>
+    </div>
+  </div>
+
+  <div class="table-card">
+    <h3>Perfil de la empresa</h3>
+    <table>
+      <thead><tr><th>Atributo</th><th>Descripción</th></tr></thead>
+      <tbody>
+        <tr><td>Nombre</td><td>NovaSoft Solutions S.A.S.</td></tr>
+        <tr><td>Sector</td><td>Tecnología / Software SaaS B2B</td></tr>
+        <tr><td>Fundación</td><td>2019 · Pereira, Risaralda</td></tr>
+        <tr><td>Productos</td><td>HealthFlow, LogiTrack, RetailIQ</td></tr>
+        <tr><td>Modelo de negocio</td><td>Suscripción anual (SaaS)</td></tr>
+        <tr><td>Mercado objetivo</td><td>PYMEs en salud, logística y retail</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ===================== FINANCIERO ===================== -->
+<div id="financiero" class="section">
+  <div class="metrics-grid">
+    <div class="metric-card">
+      <div class="lbl">MRR actual</div>
+      <div class="val">$57.9M</div>
+      <div class="sub warn">Meta: $85M COP</div>
+    </div>
+    <div class="metric-card">
+      <div class="lbl">Flujo caja libre</div>
+      <div class="val">$280M</div>
+      <div class="sub up">Positivo</div>
+    </div>
+    <div class="metric-card">
+      <div class="lbl">CAC promedio</div>
+      <div class="val">$2.9M</div>
+      <div class="sub up">LTV $24.8M</div>
+    </div>
+    <div class="metric-card">
+      <div class="lbl">Deuda financiera</div>
+      <div class="val">$0</div>
+      <div class="sub up">Sin apalancamiento</div>
+    </div>
+  </div>
+
+  <div class="charts-grid">
+    <div class="chart-card">
+      <h3>Estructura de costos 2024 ($265M COP total)</h3>
+      <div class="chart-wrap" style="height:260px"><canvas id="c_costos" role="img" aria-label="Costos: Nómina 60%, Cloud 20%, Marketing 12%, GA 8%">Nómina 60%, Cloud 20%, Marketing 12%, GA 8%.</canvas></div>
+    </div>
+    <div class="chart-card">
+      <h3>Evolución financiera 2022–2024</h3>
+      <div class="chart-wrap" style="height:260px"><canvas id="c_evol" role="img" aria-label="Ingresos vs EBITDA 2022 a 2024">Ingresos y EBITDA por año.</canvas></div>
+    </div>
+  </div>
+
+  <div class="table-card">
+    <h3>Fuentes de ingreso por línea de negocio</h3>
+    <table>
+      <thead><tr><th>Fuente</th><th>COP Anuales</th><th>% Total</th><th>Margen neto</th><th>Evaluación</th></tr></thead>
+      <tbody>
+        <tr><td>Suscripciones SaaS</td><td>$420.000.000</td><td>60,4%</td><td>82%</td><td><span class="badge success">Excelente</span></td></tr>
+        <tr><td>Implementación / Consultoría</td><td>$180.000.000</td><td>25,9%</td><td>35%</td><td><span class="badge warning">Revisar</span></td></tr>
+        <tr><td>Soporte Premium</td><td>$95.000.000</td><td>13,7%</td><td>71%</td><td><span class="badge success">Bueno</span></td></tr>
+        <tr><td><strong>TOTAL</strong></td><td><strong>$695.000.000</strong></td><td><strong>100%</strong></td><td><strong>62%</strong></td><td><span class="badge info">Saludable</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ===================== CLIENTES ===================== -->
+<div id="clientes" class="section">
+  <div class="metrics-grid">
+    <div class="metric-card">
+      <div class="lbl">NPS</div><div class="val">61</div><div class="sub warn">Meta 2025: >70</div>
+    </div>
+    <div class="metric-card">
+      <div class="lbl">Tasa de renovación</div><div class="val">88%</div><div class="sub warn">Meta: >90%</div>
+    </div>
+    <div class="metric-card">
+      <div class="lbl">Churn anual</div><div class="val">12%</div><div class="sub down">Meta: <8%</div>
+    </div>
+    <div class="metric-card">
+      <div class="lbl">Upsell rate</div><div class="val">22%</div><div class="sub up">✓ Benchmark</div>
+    </div>
+  </div>
+
+  <div class="charts-grid">
+    <div class="chart-card">
+      <h3>LTV promedio por segmento (millones COP)</h3>
+      <div class="chart-wrap" style="height:240px"><canvas id="c_ltv" role="img" aria-label="LTV: Salud 32M, Logística 28M, Retail 18M">LTV: Salud $32M, Logística $28M, Retail $18M.</canvas></div>
+    </div>
+    <div class="chart-card">
+      <h3>Churn por segmento (%)</h3>
+      <div class="chart-wrap" style="height:240px"><canvas id="c_churn" role="img" aria-label="Churn: Salud 5%, Logística 9%, Retail 22%">Churn: Salud 5%, Logística 9%, Retail 22%.</canvas></div>
+    </div>
+  </div>
+
+  <div class="table-card">
+    <h3>Segmentación de clientes por valor</h3>
+    <table>
+      <thead><tr><th>Segmento</th><th>Clientes</th><th>LTV Promedio COP</th><th>Churn</th><th>Prioridad estratégica</th></tr></thead>
+      <tbody>
+        <tr><td>Salud (IPS / Clínicas)</td><td>8</td><td>$32.000.000</td><td>5%</td><td><span class="badge success">Alta</span></td></tr>
+        <tr><td>Logística / Transporte</td><td>11</td><td>$28.000.000</td><td>9%</td><td><span class="badge success">Alta</span></td></tr>
+        <tr><td>Retail Independiente</td><td>9</td><td>$18.000.000</td><td>22%</td><td><span class="badge danger">Baja</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ===================== PRODUCTOS ===================== -->
+<div id="productos" class="section">
+  <div class="charts-grid">
+    <div class="chart-card">
+      <h3>Ingresos por producto (COP millones)</h3>
+      <div class="chart-wrap" style="height:240px"><canvas id="c_prod_ing" role="img" aria-label="Ingresos: HealthFlow 280M, LogiTrack 210M, RetailIQ 130M">HealthFlow $280M, LogiTrack $210M, RetailIQ $130M.</canvas></div>
+    </div>
+    <div class="chart-card">
+      <h3>Margen neto por producto (%)</h3>
+      <div class="chart-wrap" style="height:240px"><canvas id="c_prod_margen" role="img" aria-label="Margen: HealthFlow 85%, LogiTrack 78%, RetailIQ 55%, Consultoría 35%">HealthFlow 85%, LogiTrack 78%, RetailIQ 55%, Consultoría 35%.</canvas></div>
+    </div>
+  </div>
+
+  <div class="table-card">
+    <h3>Análisis por línea de producto</h3>
+    <table>
+      <thead><tr><th>Producto</th><th>Vertical</th><th>Ingresos COP</th><th>Margen</th><th>Riesgo</th><th>Acción</th></tr></thead>
+      <tbody>
+        <tr><td><strong>HealthFlow</strong></td><td>Salud</td><td>$280.000.000</td><td>85%</td><td><span class="badge success">Bajo</span></td><td>Escalar e invertir</td></tr>
+        <tr><td><strong>LogiTrack</strong></td><td>Logística</td><td>$210.000.000</td><td>78%</td><td><span class="badge success">Bajo</span></td><td>Expandir funciones</td></tr>
+        <tr><td><strong>RetailIQ</strong></td><td>Retail</td><td>$130.000.000</td><td>55%</td><td><span class="badge warning">Medio</span></td><td>Repricing / evaluar</td></tr>
+        <tr><td><strong>Consultoría</strong></td><td>Transversal</td><td>$180.000.000</td><td>35%</td><td><span class="badge danger">Alto</span></td><td>Productizar</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="table-card">
+    <h3>Problemas operativos identificados</h3>
+    <table>
+      <thead><tr><th>Problema</th><th>Impacto</th><th>Prioridad</th><th>Solución propuesta</th></tr></thead>
+      <tbody>
+        <tr><td>Onboarding lento (21 días)</td><td>Churn early-stage</td><td><span class="badge danger">Alta</span></td><td>Playbook + automatización</td></tr>
+        <tr><td>Sin ambiente de staging</td><td>Bugs en producción</td><td><span class="badge danger">Alta</span></td><td>Configurar en 4 semanas</td></tr>
+        <tr><td>Deuda técnica RetailIQ</td><td>Velocidad de desarrollo</td><td><span class="badge warning">Media</span></td><td>Sprint dedicado Q2 2025</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ===================== KPIs ===================== -->
+<div id="kpis" class="section">
+  <div class="chart-card" style="margin-bottom:20px">
+    <h3>Radar de desempeño — Actual 2024 vs Meta 2025</h3>
+    <div class="chart-wrap" style="height:320px"><canvas id="c_radar" role="img" aria-label="Radar de KPIs actuales vs metas 2025">Comparación de KPIs actuales vs metas 2025.</canvas></div>
+  </div>
+
+  <div class="kpi-grid">
+    <div class="kpi-item">
+      <div class="kpi-name">MRR — Meta $85M COP</div>
+      <div class="kpi-bar-bg"><div class="kpi-bar" style="width:68%;background:var(--blue-mid)"></div></div>
+      <div class="kpi-vals"><span class="kpi-current">$57.9M actual</span><span class="kpi-target">Meta: $85M</span></div>
+    </div>
+    <div class="kpi-item">
+      <div class="kpi-name">Churn — Meta <8%</div>
+      <div class="kpi-bar-bg"><div class="kpi-bar" style="width:60%;background:var(--red-dark)"></div></div>
+      <div class="kpi-vals"><span class="kpi-current">12% actual</span><span class="kpi-target">Meta: <8%</span></div>
+    </div>
+    <div class="kpi-item">
+      <div class="kpi-name">NPS — Meta >70</div>
+      <div class="kpi-bar-bg"><div class="kpi-bar" style="width:87%;background:var(--amber-dark)"></div></div>
+      <div class="kpi-vals"><span class="kpi-current">61 actual</span><span class="kpi-target">Meta: >70</span></div>
+    </div>
+    <div class="kpi-item">
+      <div class="kpi-name">LTV:CAC — Meta >10x</div>
+      <div class="kpi-bar-bg"><div class="kpi-bar" style="width:85%;background:var(--green-dark)"></div></div>
+      <div class="kpi-vals"><span class="kpi-current">8.5x actual</span><span class="kpi-target">Meta: >10x</span></div>
+    </div>
+    <div class="kpi-item">
+      <div class="kpi-name">Onboarding — Meta <10 días</div>
+      <div class="kpi-bar-bg"><div class="kpi-bar" style="width:48%;background:var(--red-dark)"></div></div>
+      <div class="kpi-vals"><span class="kpi-current">21 días actual</span><span class="kpi-target">Meta: <10 días</span></div>
+    </div>
+    <div class="kpi-item">
+      <div class="kpi-name">NRR — Meta >105%</div>
+      <div class="kpi-bar-bg"><div class="kpi-bar" style="width:30%;background:var(--gray-text)"></div></div>
+      <div class="kpi-vals"><span class="kpi-current">No medido</span><span class="kpi-target">Meta: >105%</span></div>
+    </div>
+    <div class="kpi-item">
+      <div class="kpi-name">Pipeline velocity — Meta <30 días</div>
+      <div class="kpi-bar-bg"><div class="kpi-bar" style="width:67%;background:var(--amber-dark)"></div></div>
+      <div class="kpi-vals"><span class="kpi-current">45 días actual</span><span class="kpi-target">Meta: <30 días</span></div>
+    </div>
+    <div class="kpi-item">
+      <div class="kpi-name">Tasa de renovación — Meta >90%</div>
+      <div class="kpi-bar-bg"><div class="kpi-bar" style="width:88%;background:var(--blue-mid)"></div></div>
+      <div class="kpi-vals"><span class="kpi-current">88% actual</span><span class="kpi-target">Meta: >90%</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== RIESGOS ===================== -->
+<div id="riesgos" class="section">
+  <div class="risk-grid">
+    <div class="risk-item high">
+      <h4>⚠ Competencia de Siigo en salud</h4>
+      <p>Alta probabilidad · Alto impacto. Siigo tiene $60B COP de respaldo y podría entrar al segmento de salud con precio competitivo.</p>
+      <p style="margin-top:6px;font-weight:600;color:var(--red-dark)">Acción: Diferenciación de producto con funcionalidades únicas.</p>
+    </div>
+    <div class="risk-item high">
+      <h4>⚠ Pérdida de talento clave</h4>
+      <p>Media probabilidad · Alto impacto. 3 desarrolladores conocen el 80% del código. Hay ofertas internacionales activas.</p>
+      <p style="margin-top:6px;font-weight:600;color:var(--red-dark)">Acción: Plan de retención con bonos + documentación de código.</p>
+    </div>
+    <div class="risk-item med">
+      <h4>⚡ Churn acelerado en retail</h4>
+      <p>Alta probabilidad · Impacto medio. El segmento retail tiene 22% de churn anual, el triple del segmento salud.</p>
+      <p style="margin-top:6px;font-weight:600;color:var(--amber-dark)">Acción: Repricing o desinversión estratégica en retail.</p>
+    </div>
+    <div class="risk-item low">
+      <h4>✓ Aumento costos AWS (FX)</h4>
+      <p>Alta probabilidad · Bajo impacto. Depreciación del COP generó $8M adicionales en 2024.</p>
+      <p style="margin-top:6px;font-weight:600;color:var(--green-dark)">Acción: Migrar parcialmente a servidores locales en Colombia.</p>
+    </div>
+  </div>
+
+  <div class="table-card">
+    <h3>Matriz de riesgos</h3>
+    <table>
+      <thead><tr><th>Riesgo</th><th>Probabilidad</th><th>Impacto</th><th>Nivel</th><th>Responsable</th></tr></thead>
+      <tbody>
+        <tr><td>Entrada de Siigo al segmento salud</td><td>Alta</td><td>Alto</td><td><span class="badge danger">Crítico</span></td><td>CEO / CTO</td></tr>
+        <tr><td>Pérdida de desarrolladores clave</td><td>Media</td><td>Alto</td><td><span class="badge danger">Alto</span></td><td>CEO</td></tr>
+        <tr><td>Churn en segmento retail</td><td>Alta</td><td>Medio</td><td><span class="badge warning">Medio</span></td><td>CS Manager</td></tr>
+        <tr><td>Incumplimiento Ley 1581 (datos)</td><td>Media</td><td>Alto</td><td><span class="badge danger">Alto</span></td><td>CFO / Legal</td></tr>
+        <tr><td>Aumento costos infraestructura (FX)</td><td>Alta</td><td>Bajo</td><td><span class="badge warning">Bajo</span></td><td>CTO</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ===================== DECISIÓN ===================== -->
+<div id="decision" class="section">
+  <div class="decision-box">
+    <h3><i class="ti ti-rocket"></i> Decisión Estratégica Final — Analistas de BI</h3>
+    <p>Con base en el análisis completo de las 20 preguntas, NovaSoft Solutions se encuentra en su <strong>Punto de Inflexión</strong>: tiene producto sólido, finanzas saludables y un mercado masivamente sin explotar. El cuello de botella no es el producto, sino la <strong>velocidad de crecimiento comercial</strong>.</p>
+    <p>El LTV:CAC de 8.5x significa que cada peso invertido en adquisición genera 8.5 pesos de valor — esto justifica una inversión agresiva en ventas que actualmente no se está haciendo (solo el 12% del presupuesto).</p>
+    <div class="projection">
+      <div class="proj-item"><div class="pv">$1.200M</div><div class="pl">Ingresos proyectados 2025</div></div>
+      <div class="proj-item"><div class="pv">+73%</div><div class="pl">Crecimiento esperado</div></div>
+      <div class="proj-item"><div class="pv">45</div><div class="pl">Clientes objetivo 2025</div></div>
+      <div class="proj-item"><div class="pv">$107M</div><div class="pl">Inversión en motor comercial</div></div>
+    </div>
+  </div>
+
+  <div class="table-card" style="margin-top:20px">
+    <h3>Plan de acción por horizontes de tiempo</h3>
+    <table>
+      <thead><tr><th>Acción</th><th>Horizonte</th><th>Inversión COP</th><th>ROI esperado</th></tr></thead>
+      <tbody>
+        <tr><td>Programa Customer Success</td><td><span class="badge info">0–3 meses</span></td><td>$8.000.000</td><td>Reduce churn → +$33M/año</td></tr>
+        <tr><td>Playbook de onboarding (21→10 días)</td><td><span class="badge info">0–3 meses</span></td><td>$3.000.000</td><td>Mejora NPS y retención</td></tr>
+        <tr><td>Ambiente de staging (elimina bugs)</td><td><span class="badge info">0–3 meses</span></td><td>$2.000.000</td><td>NPS +5 puntos</td></tr>
+        <tr><td>Expansión Eje Cafetero</td><td><span class="badge warning">3–12 meses</span></td><td>$25.000.000</td><td>15 clientes → +$90M/año</td></tr>
+        <tr><td>Integración de datos / BI centralizado</td><td><span class="badge warning">3–12 meses</span></td><td>$12.000.000</td><td>Decisiones en tiempo real</td></tr>
+        <tr><td>Módulo sector educativo</td><td><span class="badge danger">12–36 meses</span></td><td>$80.000.000</td><td>Nueva vertical +$200M/año</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="table-card">
+    <h3>Escenarios de proyección 2025</h3>
+    <table>
+      <thead><tr><th>Escenario</th><th>Ingresos 2025</th><th>Clientes</th><th>Acciones requeridas</th></tr></thead>
+      <tbody>
+        <tr><td>Conservador (sin cambios)</td><td>$870.000.000</td><td>33</td><td>Mantenimiento actual</td></tr>
+        <tr><td>Moderado (mejoras operativas)</td><td>$1.000.000.000</td><td>38</td><td>Customer Success + onboarding</td></tr>
+        <tr><td><strong>Agresivo — Recomendado ✓</strong></td><td><strong>$1.200.000.000</strong></td><td><strong>45</strong></td><td>Motor comercial + expansión</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div style="margin-top:20px">
+    <p style="font-size:13px;color:var(--gray-text);margin-bottom:12px">Herramientas de levantamiento de información utilizadas:</p>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px">
+      <div style="background:#fff;border:1px solid var(--gray-border);border-radius:var(--radius);padding:14px;display:flex;gap:10px;align-items:flex-start">
+        <i class="ti ti-message-circle" style="color:var(--blue-mid);font-size:20px;flex-shrink:0"></i>
+        <div><strong style="font-size:13px">Entrevistas</strong><p style="font-size:12px;color:var(--gray-text);margin-top:2px">CEO, CTO y CFO — 45 min c/u</p></div>
+      </div>
+      <div style="background:#fff;border:1px solid var(--gray-border);border-radius:var(--radius);padding:14px;display:flex;gap:10px;align-items:flex-start">
+        <i class="ti ti-file-text" style="color:var(--blue-mid);font-size:20px;flex-shrink:0"></i>
+        <div><strong style="font-size:13px">Revisión documental</strong><p style="font-size:12px;color:var(--gray-text);margin-top:2px">Estados financieros, CRM, actas</p></div>
+      </div>
+      <div style="background:#fff;border:1px solid var(--gray-border);border-radius:var(--radius);padding:14px;display:flex;gap:10px;align-items:flex-start">
+        <i class="ti ti-clipboard-list" style="color:var(--blue-mid);font-size:20px;flex-shrink:0"></i>
+        <div><strong style="font-size:13px">Encuesta NPS</strong><p style="font-size:12px;color:var(--gray-text);margin-top:2px">28 clientes — 86% respuesta</p></div>
+      </div>
+      <div style="background:#fff;border:1px solid var(--gray-border);border-radius:var(--radius);padding:14px;display:flex;gap:10px;align-items:flex-start">
+        <i class="ti ti-eye" style="color:var(--blue-mid);font-size:20px;flex-shrink:0"></i>
+        <div><strong style="font-size:13px">Observación directa</strong><p style="font-size:12px;color:var(--gray-text);margin-top:2px">Reuniones de liderazgo y Jira</p></div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<div class="footer">
+  NovaSoft Solutions S.A.S. · Dashboard BI · Trabajo Final ACA · CUN Pereira 2025 · Ing. Felipe Alexander Garzón
+</div>
+
+<script>
+function switchTab(id, btn) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+  setTimeout(initCharts, 80);
+}
+
+const done = {};
+function initCharts() {
+  if (!done.ingresos && document.getElementById('overview').classList.contains('active')) {
+    done.ingresos = true;
+    new Chart(document.getElementById('c_ingresos'), {
+      type: 'bar',
+      data: { labels: ['2022','2023','2024'], datasets: [{ label: 'Ingresos (M COP)', data: [380,540,695], backgroundColor: ['#185FA5','#185FA5','#1A3C5E'], borderRadius: 6 }] },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { callback: v => '$'+v+'M' } } } }
+    });
+    new Chart(document.getElementById('c_dist'), {
+      type: 'doughnut',
+      data: { labels: ['Suscripciones SaaS','Consultoría','Soporte Premium'], datasets: [{ data: [60.4,25.9,13.7], backgroundColor: ['#1A3C5E','#185FA5','#378ADD'], hoverOffset: 6 }] },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 12 } } } } }
+    });
+  }
+  if (!done.financiero && document.getElementById('financiero').classList.contains('active')) {
+    done.financiero = true;
+    new Chart(document.getElementById('c_costos'), {
+      type: 'pie',
+      data: { labels: ['Nómina técnica','Infraestructura cloud','Ventas y marketing','G&A'], datasets: [{ data: [60,20,12,8], backgroundColor: ['#1A3C5E','#185FA5','#378ADD','#B5D4F4'], hoverOffset: 6 }] },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 12 } } } } }
+    });
+    new Chart(document.getElementById('c_evol'), {
+      type: 'bar',
+      data: {
+        labels: ['2022','2023','2024'],
+        datasets: [
+          { label: 'Ingresos', data: [380,540,695], backgroundColor: '#185FA5', borderRadius: 4 },
+          { label: 'EBITDA', data: [220,320,430], backgroundColor: '#0F6E56', borderRadius: 4 }
+        ]
+      },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top', labels: { boxWidth: 12, font: { size: 12 } } } }, scales: { y: { ticks: { callback: v => '$'+v+'M' } } } }
+    });
+  }
+  if (!done.clientes && document.getElementById('clientes').classList.contains('active')) {
+    done.clientes = true;
+    new Chart(document.getElementById('c_ltv'), {
+      type: 'bar',
+      data: { labels: ['Salud','Logística','Retail'], datasets: [{ label: 'LTV (M COP)', data: [32,28,18], backgroundColor: ['#0F6E56','#185FA5','#A32D2D'], borderRadius: 6 }] },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { ticks: { callback: v => '$'+v+'M' } } } }
+    });
+    new Chart(document.getElementById('c_churn'), {
+      type: 'bar',
+      data: { labels: ['Salud','Logística','Retail'], datasets: [{ label: 'Churn (%)', data: [5,9,22], backgroundColor: ['#0F6E56','#BA7517','#A32D2D'], borderRadius: 6 }] },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { max: 30, ticks: { callback: v => v+'%' } } } }
+    });
+  }
+  if (!done.productos && document.getElementById('productos').classList.contains('active')) {
+    done.productos = true;
+    new Chart(document.getElementById('c_prod_ing'), {
+      type: 'bar',
+      data: { labels: ['HealthFlow','LogiTrack','RetailIQ','Consultoría'], datasets: [{ label: 'Ingresos (M COP)', data: [280,210,130,180], backgroundColor: ['#1A3C5E','#185FA5','#BA7517','#73726c'], borderRadius: 6 }] },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { ticks: { callback: v => '$'+v+'M' } } } }
+    });
+    new Chart(document.getElementById('c_prod_margen'), {
+      type: 'bar',
+      data: { labels: ['HealthFlow','LogiTrack','RetailIQ','Consultoría'], datasets: [{ label: 'Margen (%)', data: [85,78,55,35], backgroundColor: ['#0F6E56','#1D9E75','#BA7517','#A32D2D'], borderRadius: 6 }] },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { max: 100, ticks: { callback: v => v+'%' } } } }
+    });
+  }
+  if (!done.kpis && document.getElementById('kpis').classList.contains('active')) {
+    done.kpis = true;
+    new Chart(document.getElementById('c_radar'), {
+      type: 'radar',
+      data: {
+        labels: ['NPS (÷10)','Renovación %','LTV:CAC','Margen EBITDA %','Pipeline (inv.)'],
+        datasets: [
+          { label: 'Actual 2024', data: [6.1,88,8.5,62,45], borderColor: '#185FA5', backgroundColor: 'rgba(24,95,165,0.15)', pointBackgroundColor: '#185FA5' },
+          { label: 'Meta 2025',   data: [7,92,10,65,70],    borderColor: '#0F6E56', backgroundColor: 'rgba(15,110,86,0.1)',   pointBackgroundColor: '#0F6E56', borderDash: [5,3] }
+        ]
+      },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12 } } }, scales: { r: { beginAtZero: true } } }
+    });
+  }
+}
+setTimeout(initCharts, 200);
+</script>
+</body>
+</html>
